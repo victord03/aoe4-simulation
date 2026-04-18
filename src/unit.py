@@ -1,9 +1,9 @@
-from src.unit_damage_bonuses import UnitDamageBonuses as Udb
-from src.unit_damage_bonuses import UnitTypes
+from src.unit_types import UnitDamageBonuses as Udb
+from src.unit_types import UnitTypes
 
 Spearman = {
     "name": "Spearman",
-    "unit_types": {UnitTypes.LMI, UnitTypes.INF},
+    "unit_types": {UnitTypes.LMI, UnitTypes.INFANTRY},
     "current_health": 125,
     "melee_armor": 0,
     "ranged_armor": 2,
@@ -14,7 +14,7 @@ Spearman = {
 
 Archer = {
     "name": "Archer",
-    "unit_types": {UnitTypes.LRI, UnitTypes.RANG},
+    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
     "current_health": 70,
     "melee_armor": 0,
     "ranged_armor": 0,
@@ -25,7 +25,7 @@ Archer = {
 
 Horseman = {
     "name": "Horseman",
-    "unit_types": {UnitTypes.LMC, UnitTypes.CAV},
+    "unit_types": {UnitTypes.LMC, UnitTypes.CAVALRY},
     "current_health": 125,
     "melee_armor": 0,
     "ranged_armor": 2,
@@ -36,7 +36,7 @@ Horseman = {
 
 Crossbowman = {
     "name": "Crossbowman",
-    "unit_types": {UnitTypes.LRI, UnitTypes.RANG},
+    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
     "current_health": 80,
     "melee_armor": 0,
     "ranged_armor": 0,
@@ -48,7 +48,7 @@ Crossbowman = {
 
 Knight = {
     "name": "Knight",
-    "unit_types": {UnitTypes.HMC, UnitTypes.HVY},
+    "unit_types": {UnitTypes.HMC, UnitTypes.HEAVY},
     "current_health": 230,
     "melee_armor": 4,
     "ranged_armor": 4,
@@ -60,7 +60,7 @@ Knight = {
 
 class Unit:
     name: str
-    unit_types: set[Udb]
+    unit_types: set[UnitTypes]
     current_health: int
     melee_armor: int
     ranged_armor: int
@@ -72,7 +72,7 @@ class Unit:
     def __init__(
             self,
             name: str,
-            unit_types: set[Udb],
+            unit_types: set[UnitTypes],
             current_health: int,
             melee_armor: int,
             ranged_armor: int,

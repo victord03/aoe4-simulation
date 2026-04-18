@@ -1,7 +1,7 @@
 import pytest
 
 from src.unit import Unit, Spearman
-from src.unit_damage_bonuses import UnitTypes
+from src.unit_types import UnitTypes
 
 
 class TestUnit:
@@ -44,6 +44,6 @@ class TestUnit:
 
     def test_complete_unit_instance_with_damage_bonuses_set(self, create_spearman, create_archer):
 
-        assert create_spearman.unit_damage_bonuses.damage_bonuses[UnitTypes.CAV] == 17
+        assert create_spearman.unit_damage_bonuses.damage_bonuses[UnitTypes.CAVALRY] == 17
         assert create_archer.unit_damage_bonuses.damage_bonuses[UnitTypes.LMI] == 4
 

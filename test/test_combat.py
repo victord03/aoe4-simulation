@@ -1,7 +1,7 @@
 import pytest
 
 from src.combat import deals_bonus_damage, assign_damage, determine_attack_speed_ratio
-from src.unit_damage_bonuses import UnitTypes
+from src.unit_types import UnitTypes
 from src.unit import Unit
 
 def test_deals_bonus_damage(create_archer, create_spearman):
@@ -13,7 +13,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
         (
                 {
                     "name": "Spearman",
-                    "unit_types": {UnitTypes.LMI, UnitTypes.INF},
+                    "unit_types": {UnitTypes.LMI, UnitTypes.INFANTRY},
                     "current_health": 125,
                     "melee_armor": 0,
                     "ranged_armor": 2,
@@ -25,7 +25,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                 {
 
                     "name": "Archer",
-                    "unit_types": {UnitTypes.LRI, UnitTypes.RANG},
+                    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
                     "current_health": 70,
                     "melee_armor": 0,
                     "ranged_armor": 0,
@@ -40,7 +40,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
         (
                 {
                     "name": "Archer",
-                    "unit_types": {UnitTypes.LRI, UnitTypes.RANG},
+                    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
                     "current_health": 70,
                     "melee_armor": 0,
                     "ranged_armor": 0,
@@ -51,7 +51,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
 
                 {
                     "name": "Horseman",
-                    "unit_types": {UnitTypes.LMC, UnitTypes.CAV},
+                    "unit_types": {UnitTypes.LMC, UnitTypes.CAVALRY},
                     "current_health": 125,
                     "melee_armor": 0,
                     "ranged_armor": 7,
@@ -67,7 +67,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
         (
                 {
                     "name": "Crossbowman",
-                    "unit_types": {UnitTypes.LRI, UnitTypes.RANG},
+                    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
                     "current_health": 80,
                     "melee_armor": 0,
                     "ranged_armor": 0,
@@ -78,7 +78,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
 
                 {
                     "name": "Knight",
-                    "unit_types": {UnitTypes.HMC, UnitTypes.HVY, UnitTypes.CAV},
+                    "unit_types": {UnitTypes.HMC, UnitTypes.HEAVY, UnitTypes.CAVALRY},
                     "current_health": 230,
                     "melee_armor": 4,
                     "ranged_armor": 4,
@@ -87,7 +87,7 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "attack_speed": 1.5
                 },
 
-                (UnitTypes.HVY, 10)
+                (UnitTypes.HEAVY, 10)
 
         ),
 
