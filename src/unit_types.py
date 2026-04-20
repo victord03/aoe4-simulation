@@ -62,12 +62,12 @@ class UnitDamageBonuses:
 
     def display_udb(self) -> str:
 
-        text_version = "\n"
+        text_version = ""
 
         for key, value in self.damage_bonuses.items():
-            text_version += f"{key}: {value}\n"
+            text_version += f"{key}: {value} "
 
-        return text_version
+        return text_version.strip()
 
 
 

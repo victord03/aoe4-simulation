@@ -1,3 +1,5 @@
+
+
 import pandas as pd
 from pathlib import Path
 from src.unit import Unit
@@ -36,14 +38,18 @@ def load_units() -> dict[str, Unit]:
     for _, row in df.iterrows():
         loaded_units[row["Name"]] = Unit(
             name=row["Name"],
-            unit_types={UnitTypes[row["Type"]]} | aput(row["Type"]),
-            current_health=row["Health"],
+            health=row["Health"],
             melee_armor=row["Melee"],
             ranged_armor=row["Ranged"],
             attack_type=row["Attack Type"],
             attack_value=row["Attack"],
             attack_speed=row["Att. Sp."],
-            unit_line=row["Unit-line"]
+            unit_types={UnitTypes[row["Type"]]} | aput(row["Type"]),
+            unit_line=row["Unit-line"],
+            food_cost=row["Food"],
+            wood_cost=row["Wood"],
+            gold_cost=row["Gold"],
+            production_time=row["Time"]
         )
 
         bonuses = BONUS_DAMAGE.get(row["Unit-line"])
@@ -61,4 +67,10 @@ if __name__ == "__main__":
     dict_units = load_units()
     print("Dict len:", len(dict_units.keys()))
     print(
-        f"Onna-Musha\n\t Unit-line: '{dict_units['Onna-Musha'].unit_line}', Attack type: '{dict_units['Onna-Musha'].attack_type}', UdB: '{dict_units['Onna-Musha'].unit_damage_bonuses.display_udb()}'.")
+        f"Spearman\n\t UdB: '{dict_units['Spearman'].unit_damage_bonuses.display_udb()}'.")
+
+    knight = dict_units["Knight"]
+
+    print(
+        f"Knight ({knight.food_cost}F / {knight.gold_cost}G), {knight.production_time} seconds."
+    )

@@ -6,64 +6,37 @@ from src.unit_types import UnitTypes, BONUS_DAMAGE
 
 Spearman = {
     "name": "Spearman",
-    "unit_types": {UnitTypes.LMI, UnitTypes.INFANTRY},
     "current_health": 125,
     "melee_armor": 0,
     "ranged_armor": 2,
     "attack_type": "Melee",
     "attack_value": 9,
     "attack_speed": 1.75,
+    "unit_types": {UnitTypes.LMI, UnitTypes.INFANTRY},
     "unit_line": "Spearman",
+    "food_cost": 60,
+    "wood_cost": 15,
+    "gold_cost": 0,
+    "production_time": 15
 }
 
 Archer = {
     "name": "Archer",
-    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
     "current_health": 70,
     "melee_armor": 0,
     "ranged_armor": 0,
     "attack_type": "Ranged",
     "attack_value": 5,
     "attack_speed": 1.62,
-    "unit_line": "Archer"
-}
-
-Horseman = {
-    "name": "Horseman",
-    "unit_types": {UnitTypes.LMC, UnitTypes.CAVALRY},
-    "current_health": 125,
-    "melee_armor": 0,
-    "ranged_armor": 2,
-    "attack_type": "Melee",
-    "attack_value": 9,
-    "attack_speed": 1.75,
-    "unit_line": "Horseman"
-}
-
-Crossbowman = {
-    "name": "Crossbowman",
     "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
-    "current_health": 80,
-    "melee_armor": 0,
-    "ranged_armor": 0,
-    "attack_type": "Ranged",
-    "attack_value": 11,
-    "attack_speed": 2.12,
-    "unit_line": "Crossbowman"
+    "unit_line": "Archer",
+    "food_cost": 30,
+    "wood_cost": 50,
+    "gold_cost": 0,
+    "production_time": 15
 }
 
 
-Knight = {
-    "name": "Knight",
-    "unit_types": {UnitTypes.HMC, UnitTypes.HEAVY},
-    "current_health": 230,
-    "melee_armor": 4,
-    "ranged_armor": 4,
-    "attack_type": "Melee",
-    "attack_value": 24,
-    "attack_speed": 1.5,
-    "unit_line": "Knight"
-}
 
 @pytest.fixture
 def create_spearman() -> Unit:

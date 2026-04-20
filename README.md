@@ -24,8 +24,9 @@ data/
 ## Status
 - [x] `Unit` class and core combat functions (`assign_damage`, `deals_bonus_damage`, `determine_attack_speed_ratio`)
 - [x] `loader.py` — reads `units.xlsx` and constructs a `dict[str, Unit]` keyed by unit name
-- [x] `unit_types.py` — `UnitTypes` enum, `UnitDamageBonuses` class, `add_parent_unit_types()` for automatic tag expansion
-- [ ] Hardcode bonus damage per unit class in Python
+- [x] `unit_types.py` — `UnitTypes` enum, `UnitDamageBonuses` class, `add_parent_unit_types()` for automatic tag expansion, `BONUS_DAMAGE` dict
+- [x] Bonus damage hardcoded in Python per unit line (`BONUS_DAMAGE`), wired into loader
+- [ ] `test_loader.py` — integration tests that load real data from Excel and validate resulting Unit objects
 - [ ] 1v1 and group fight simulation
 - [ ] Resource-balanced army matchups
 - [ ] CLI interface
@@ -63,6 +64,9 @@ Round-based model: each round, every living unit on side A attacks one target on
 ## Adding new unit type tags
 - **3-letter compound types** (e.g. `LMI`, `HMC`): add to `UnitTypes` enum in `unit_types.py` — `add_parent_unit_types()` handles them automatically via the position map.
 - **2-letter compound types** (e.g. `MI` — Melee Infantry): add to `UnitTypes` enum AND add a conditional in `add_parent_unit_types()` to assign the tag when both parent tags are present (e.g. `MELEE` + `INFANTRY` → `MI`). Required when a bonus damage entry targets the intersection of two categories rather than either one individually.
+
+## Known limitations
+- **Melee crowding:** the simulation assumes all units can attack simultaneously, ignoring the physical surface area constraint of real combat (typically 6-7 units can surround a single target). This is acceptable for the intended 5-15 unit scenarios, but results become increasingly unreliable at larger scales. Modelling this correctly would require positional geometry and is out of scope.
 
 ## Potential improvements
 - `Unit.__init__` currently validates numeric fields but not `unit_types` — a runtime `isinstance` check against `UnitTypes` would catch type errors early. Longer term, migrating `Unit` to a `@dataclass` with `__post_init__` validation is the cleaner approach and worth considering once the class stabilises.
