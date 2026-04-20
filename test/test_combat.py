@@ -1,7 +1,7 @@
 import pytest
 
 from src.combat import deals_bonus_damage, assign_damage, determine_attack_speed_ratio
-from src.unit_types import UnitTypes
+from src.unit_types import UnitTypes, BONUS_DAMAGE
 from src.unit import Unit
 
 def test_deals_bonus_damage(create_archer, create_spearman):
@@ -19,7 +19,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 2,
                     "attack_type": "Melee",
                     "attack_value": 9,
-                    "attack_speed": 1.75
+                    "attack_speed": 1.75,
+                    "unit_line": "Spearman"
                 },
 
                 {
@@ -31,7 +32,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 0,
                     "attack_type": "Ranged",
                     "attack_value": 5,
-                    "attack_speed": 1.62
+                    "attack_speed": 1.62,
+                    "unit_line": "Archer"
                 },
 
                 (UnitTypes.LMI, 4),
@@ -46,7 +48,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 0,
                     "attack_type": "Ranged",
                     "attack_value": 5,
-                    "attack_speed": 1.62
+                    "attack_speed": 1.62,
+                    "unit_line": "Archer"
                 },
 
                 {
@@ -57,7 +60,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 7,
                     "attack_type": "Melee",
                     "attack_value": 9,
-                    "attack_speed": 1.75
+                    "attack_speed": 1.75,
+                    "unit_line": "Horseman"
                 },
 
                 (UnitTypes.LMI, 0)
@@ -73,7 +77,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 0,
                     "attack_type": "Ranged",
                     "attack_value": 11,
-                    "attack_speed": 12.12
+                    "attack_speed": 12.12,
+                    "unit_line": "Crossbowman"
                 },
 
                 {
@@ -84,7 +89,8 @@ def test_deals_bonus_damage(create_archer, create_spearman):
                     "ranged_armor": 4,
                     "attack_type": "Melee",
                     "attack_value": 24,
-                    "attack_speed": 1.5
+                    "attack_speed": 1.5,
+                    "unit_line": "Knight"
                 },
 
                 (UnitTypes.HEAVY, 10)
@@ -102,10 +108,10 @@ def test_assign_damage(
 
     attacker = Unit(**attacker_dict)
 
-    attacker.unit_damage_bonuses.add_damage_bonus(
-        against_unit_type=attacker_bonuses[0],
-        bonus_amount=attacker_bonuses[1]
-    )
+    bonuses = BONUS_DAMAGE.get(attacker.unit_line)
+
+    if bonuses:
+        attacker.unit_damage_bonuses.add_damage_bonus(bonuses)
 
     defender = Unit(**defender_dict)
 

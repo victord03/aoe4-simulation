@@ -1,62 +1,6 @@
 from src.unit_types import UnitDamageBonuses as Udb
 from src.unit_types import UnitTypes
 
-Spearman = {
-    "name": "Spearman",
-    "unit_types": {UnitTypes.LMI, UnitTypes.INFANTRY},
-    "current_health": 125,
-    "melee_armor": 0,
-    "ranged_armor": 2,
-    "attack_type": "Melee",
-    "attack_value": 9,
-    "attack_speed": 1.75
-}
-
-Archer = {
-    "name": "Archer",
-    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
-    "current_health": 70,
-    "melee_armor": 0,
-    "ranged_armor": 0,
-    "attack_type": "Ranged",
-    "attack_value": 5,
-    "attack_speed": 1.62
-}
-
-Horseman = {
-    "name": "Horseman",
-    "unit_types": {UnitTypes.LMC, UnitTypes.CAVALRY},
-    "current_health": 125,
-    "melee_armor": 0,
-    "ranged_armor": 2,
-    "attack_type": "Melee",
-    "attack_value": 9,
-    "attack_speed": 1.75
-}
-
-Crossbowman = {
-    "name": "Crossbowman",
-    "unit_types": {UnitTypes.LRI, UnitTypes.RANGED},
-    "current_health": 80,
-    "melee_armor": 0,
-    "ranged_armor": 0,
-    "attack_type": "Ranged",
-    "attack_value": 11,
-    "attack_speed": 2.12
-}
-
-
-Knight = {
-    "name": "Knight",
-    "unit_types": {UnitTypes.HMC, UnitTypes.HEAVY},
-    "current_health": 230,
-    "melee_armor": 4,
-    "ranged_armor": 4,
-    "attack_type": "Melee",
-    "attack_value": 24,
-    "attack_speed": 1.5
-}
-
 
 class Unit:
     name: str
@@ -68,6 +12,7 @@ class Unit:
     attack_value: int
     attack_speed: float
     unit_damage_bonuses: Udb
+    unit_line: str
 
     def __init__(
             self,
@@ -79,6 +24,7 @@ class Unit:
             attack_type: str,
             attack_value: float,
             attack_speed: float,
+            unit_line: str
     ) -> None:
         """Initialise a Unit. Numeric stats are coerced to their expected types,
         raising ValueError if the value cannot be converted."""
@@ -92,3 +38,4 @@ class Unit:
         self.attack_value = int(attack_value)
         self.attack_speed = float(attack_speed)
         self.unit_damage_bonuses = Udb()
+        self.unit_line = unit_line

@@ -29,6 +29,7 @@ data/
 - [ ] 1v1 and group fight simulation
 - [ ] Resource-balanced army matchups
 - [ ] CLI interface
+- [ ] Composition Quiz mode (easy, medium, hard). Easy is the basic Feudal units triangle, Medium is Castle double comps and Hard is Imperial, all unit comps possible
 
 ## Design decisions
 - Bonus damage is defined in Python, not in the Excel file — it's a unit-class-level property, not per-unit data, and encoding it in code avoids sync issues (missing rows, name mismatches) with the spreadsheet
@@ -58,6 +59,10 @@ Round-based model: each round, every living unit on side A attacks one target on
 **Ranged vs melee compensation:** ranged units get 2 free rounds of damage before melee contact, reflecting the standard real-game dynamic where ranged armies consistently land shots before the enemy closes in.
 
 **Deep-copy requirement:** each Unit instance in an army must be an independent copy so HP changes don't bleed across fights.
+
+## Adding new unit type tags
+- **3-letter compound types** (e.g. `LMI`, `HMC`): add to `UnitTypes` enum in `unit_types.py` — `add_parent_unit_types()` handles them automatically via the position map.
+- **2-letter compound types** (e.g. `MI` — Melee Infantry): add to `UnitTypes` enum AND add a conditional in `add_parent_unit_types()` to assign the tag when both parent tags are present (e.g. `MELEE` + `INFANTRY` → `MI`). Required when a bonus damage entry targets the intersection of two categories rather than either one individually.
 
 ## Potential improvements
 - `Unit.__init__` currently validates numeric fields but not `unit_types` — a runtime `isinstance` check against `UnitTypes` would catch type errors early. Longer term, migrating `Unit` to a `@dataclass` with `__post_init__` validation is the cleaner approach and worth considering once the class stabilises.

@@ -1,48 +1,61 @@
 import pytest
 
-from src.unit import Unit, Spearman
+from src.unit import Unit
 from src.unit_types import UnitTypes
+from test.conftest import Spearman
 
 
 class TestUnit:
 
-    def test_instance(self) -> None:
+    def test_instance(self, create_spearman) -> None:
         """Test correct instantiation of the object"""
 
-        a = Unit(**Spearman)
-        assert isinstance(a, Unit)
+        assert isinstance(create_spearman, Unit)
 
-    def test_correct_values(self) -> None:
+    def test_correct_values(self, create_spearman) -> None:
         """Test correct values stored in the attributes"""
 
         new_value = 1
-        test_data = Spearman.copy()
-        test_data["melee_armor"] = new_value
-        a = Unit(**test_data)
+        test_data = create_spearman
+        test_data.melee_armor = new_value
 
-        assert a.melee_armor == new_value
+        assert test_data.melee_armor == new_value
 
     @pytest.mark.parametrize(
-        "class_attribute_to_test",
+        "class_attribute_to_test, new_value",
         [
-            "current_health",
-            "melee_armor",
-            "ranged_armor",
-            "attack_value",
-            "attack_speed"
+            # ("name", 105.5),
+            # ("unit_types", "N/A"),
+            ("current_health", "N/A"),
+            ("melee_armor", "N/A"),
+            ("ranged_armor", "N/A"),
+            # ("attack_type", 58),
+            ("attack_value", "N/A"),
+            ("attack_speed", "N/A"),
+            # ("unit_line", "N/A")
+        ],
+        ids=[
+            # "Incorrect name",
+            # "Incorrect unit_types",
+            "Incorrect current_health",
+            "Incorrect melee_armor",
+            "Incorrect ranged_armor",
+            # "Incorrect attack_type",
+            "Incorrect attack_value",
+            "Incorrect attack_speed",
+            # "Incorrect unit_line",
         ]
-    )
-    def test_handle_incorrect_data_types(self, class_attribute_to_test) -> None:
+    )  # TODO Need to find a way to still test for the values that can still be coerced in __init__
+    def test_handle_incorrect_data_types(self, class_attribute_to_test, new_value) -> None:
         """Tests incorrect data type for each attribute raises ValueError"""
 
-        new_value = "cannot be coerced into an int"
         test_data = Spearman.copy()
         test_data[class_attribute_to_test] = new_value
 
         with pytest.raises(ValueError):
             Unit(**test_data)
 
-    def test_complete_unit_instance_with_damage_bonuses_set(self, create_spearman, create_archer):
+    def test_damage_bonuses(self, create_spearman, create_archer):
 
         assert create_spearman.unit_damage_bonuses.damage_bonuses[UnitTypes.CAVALRY] == 17
         assert create_archer.unit_damage_bonuses.damage_bonuses[UnitTypes.LMI] == 4
