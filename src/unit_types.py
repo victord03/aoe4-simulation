@@ -12,6 +12,7 @@ class UnitTypes(Enum):
     LRC = "Light Ranged Cavalry"
     HMC = "Heavy Melee Cavalry"
     LGI = "Light Gunpowder Infantry"
+    RGI = "Ranged Gunpowder Infantry"
 
     # DOUBLE CATEGORIES
     MI = "Melee Infantry"

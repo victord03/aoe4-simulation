@@ -27,7 +27,8 @@ data/
 - [x] `unit_types.py` — `UnitTypes` enum, `UnitDamageBonuses` class, `add_parent_unit_types()` for automatic tag expansion, `BONUS_DAMAGE` dict
 - [x] Bonus damage hardcoded in Python per unit line (`BONUS_DAMAGE`), wired into loader
 - [ ] `test_loader.py` — integration tests that load real data from Excel and validate resulting Unit objects
-- [ ] 1v1 and group fight simulation
+- [x] `group_fight()` — round-based group combat simulation with attack speed counters, ranged free turns, and resource tracking
+- [ ] 1v1 and group fight simulation (cleanup + testing)
 - [ ] Resource-balanced army matchups
 - [ ] CLI interface
 - [ ] Composition Quiz mode (easy, medium, hard). Easy is the basic Feudal units triangle, Medium is Castle double comps and Hard is Imperial, all unit comps possible

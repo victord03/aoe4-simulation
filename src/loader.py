@@ -7,7 +7,7 @@ from src.unit_types import UnitTypes, BONUS_DAMAGE, add_parent_unit_types as apu
 
 BASE_DIR = Path(__file__).parent.parent
 
-file_name = "2026-04-20_AoeIV-Excel-Data-Masterfile.xlsx"
+file_name = "2026-04-22_AoeIV-Excel-Data-Masterfile.xlsx"
 
 def open_excel() -> pd.DataFrame:
     return pd.read_excel(BASE_DIR / "data" / file_name, sheet_name="Units")
@@ -73,4 +73,10 @@ if __name__ == "__main__":
 
     print(
         f"Knight ({knight.food_cost}F / {knight.gold_cost}G), {knight.production_time} seconds."
+    )
+
+    handcannon = dict_units["Gilded Handcannoneer"]
+
+    print(
+        f"Gilded Handcannoneer Types:{handcannon.unit_types} \n {handcannon.unit_damage_bonuses.display_udb()}"
     )
