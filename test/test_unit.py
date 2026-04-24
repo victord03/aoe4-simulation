@@ -24,36 +24,22 @@ class TestUnit:
     @pytest.mark.parametrize(
         "class_attribute_to_test, new_value",
         [
-            # ("name", 105.5),
-            ("current_health", "N/A"),
+            ("health", "N/A"),
             ("melee_armor", "N/A"),
             ("ranged_armor", "N/A"),
-            # ("attack_type", 58),
             ("attack_value", "N/A"),
             ("attack_speed", "N/A"),
-            # ("unit_types", "N/A"),
-            # ("unit_line", "N/A");
-            # ("food_cost", "N/A"),
-            # ("wood_cost", "N/A"),
-            # ("gold_cost", "N/A"),
-            # ("production_time", "N/A")
+            ("attack_type", "N/A")
         ],
         ids=[
-            # "Incorrect name",
-            "Incorrect current_health",
+            "Incorrect health",
             "Incorrect melee_armor",
             "Incorrect ranged_armor",
-            # "Incorrect attack_type",
             "Incorrect attack_value",
             "Incorrect attack_speed",
-            # "Incorrect unit_types",
-            # "Incorrect unit_line",
-            #
-            #
-            #
-            #
+            "Incorrect attack_type"
         ]
-    )  # TODO Need to find a way to still test for the values that can still be coerced in __init__
+    )
     def test_handle_incorrect_data_types(self, class_attribute_to_test, new_value) -> None:
         """Tests incorrect data type for each attribute raises ValueError"""
 

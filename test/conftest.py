@@ -6,7 +6,7 @@ from src.unit_types import UnitTypes, BONUS_DAMAGE
 
 Spearman = {
     "name": "Spearman",
-    "current_health": 125,
+    "health": 125,
     "melee_armor": 0,
     "ranged_armor": 2,
     "attack_type": "Melee",
@@ -17,12 +17,13 @@ Spearman = {
     "food_cost": 60,
     "wood_cost": 15,
     "gold_cost": 0,
+    "stone_cost": 0,
     "production_time": 15
 }
 
 Archer = {
     "name": "Archer",
-    "current_health": 70,
+    "health": 70,
     "melee_armor": 0,
     "ranged_armor": 0,
     "attack_type": "Ranged",
@@ -33,6 +34,7 @@ Archer = {
     "food_cost": 30,
     "wood_cost": 50,
     "gold_cost": 0,
+    "stone_cost": 0,
     "production_time": 15
 }
 

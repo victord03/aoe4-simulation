@@ -13,6 +13,7 @@ class UnitTypes(Enum):
     HMC = "Heavy Melee Cavalry"
     LGI = "Light Gunpowder Infantry"
     RGI = "Ranged Gunpowder Infantry"
+    HRGC = "Heavy Ranged Gunpowder Cavalry"
 
     # DOUBLE CATEGORIES
     MI = "Melee Infantry"
@@ -49,20 +50,20 @@ class UnitDamageBonuses:
     damage_bonuses: dict[UnitTypes, int]
 
     def __init__(self) -> None:
+        """Initialise with an empty bonus damage registry."""
         self.damage_bonuses = dict()
 
     def add_damage_bonus(self, data_dict: dict[UnitTypes, int]) -> None:
-        """Register a bonus damage amount against a given UnitTypes tag.
+        """Register one or more bonus damage entries from a {UnitTypes: int} dict.
 
-        {UnitTypes.RANGED: 9, UnitTypes.SIEGE: 9}
-
+        Entries are merged into the existing registry; calling this multiple times
+        accumulates bonuses rather than replacing them.
         """
-
         for key, value in data_dict.items():
             self.damage_bonuses[key] = value
 
     def display_udb(self) -> str:
-
+        """Return a human-readable string listing all registered bonus damage entries."""
         text_version = ""
 
         for key, value in self.damage_bonuses.items():
@@ -74,6 +75,16 @@ class UnitDamageBonuses:
 
 
 def add_parent_unit_types(unit_type: str) -> set[UnitTypes]:
+    """Expand a compound type code into its constituent parent UnitTypes tags.
+
+    Each character in `unit_type` is looked up in a letter-to-UnitTypes map
+    (e.g. 'L' → LIGHT, 'C' → CAVALRY). Works for any code length — 3-letter
+    (e.g. 'LMI'), 4-letter (e.g. 'HRGC'), or beyond.
+
+    An additional MI (Melee Infantry) tag is injected when the result contains
+    both MELEE and INFANTRY, since some bonus damage entries target that
+    intersection specifically.
+    """
     position_map = {
         "L": UnitTypes.LIGHT,
         "H": UnitTypes.HEAVY,
@@ -84,7 +95,7 @@ def add_parent_unit_types(unit_type: str) -> set[UnitTypes]:
         "G": UnitTypes.GUNPOWDER
     }
 
-    parent_types = {position_map[unit_type[0]], position_map[unit_type[1]], position_map[unit_type[2]]}
+    parent_types = {position_map[char] for char in unit_type}
 
     if UnitTypes.MELEE in parent_types and UnitTypes.INFANTRY in parent_types:
         parent_types.add(UnitTypes.MI)
