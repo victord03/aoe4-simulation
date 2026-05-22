@@ -95,3 +95,17 @@ class Unit:
     def reset_health(self) -> None:
         """Restore current_health to its full value. Useful for re-using a Unit across multiple fights."""
         self.current_health = self.health
+
+    def attack(self, defender: Unit) -> None:
+        """Attack `defender`, applying this unit's damage minus the defender's armor.
+
+        Looks up any bonus damage from `unit_damage_bonuses` against the defender's
+        unit type tags. Selects melee or ranged armor based on this unit's attack type.
+        Enforces a minimum of 1 damage per hit. Mutates `defender.current_health` in place.
+        """
+
+        matching = self.unit_damage_bonuses.damage_bonuses.keys() & defender.unit_types
+        total = sum(self.unit_damage_bonuses.damage_bonuses[tag] for tag in matching)
+
+        armor = defender.melee_armor if self.attack_type == "Melee" else defender.ranged_armor
+        defender.current_health -= max(1, round((self.attack_value - armor) + total))

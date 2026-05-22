@@ -8,6 +8,8 @@ __pycache__/
 
 # Data file
 data/2026-04-20_AoeIV-Excel-Data-Masterfile.xlsx
+data/2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx
+data/Maps.xlsx
 
 # Distribution / packaging
 .Python

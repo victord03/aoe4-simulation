@@ -11,9 +11,9 @@ class UnitTypes(Enum):
     LMC = "Light Melee Cavalry"
     LRC = "Light Ranged Cavalry"
     HMC = "Heavy Melee Cavalry"
-    LGI = "Light Gunpowder Infantry"
-    RGI = "Ranged Gunpowder Infantry"
+    LRGI = "Light Ranged Gunpowder Infantry"
     HRGC = "Heavy Ranged Gunpowder Cavalry"
+    HRGI = "Heavy Ranged Gunpowder Infantry"
 
     # DOUBLE CATEGORIES
     MI = "Melee Infantry"
@@ -32,16 +32,17 @@ class UnitTypes(Enum):
     SHIP = "Ship"
 
 
-
+# Feeds off the 'Unit-line' column to determine bonuses
 BONUS_DAMAGE = {
-    "Archer": {UnitTypes.LMI: 4, UnitTypes.LGI: 4},
+    "Archer": {UnitTypes.LMI: 4, UnitTypes.LRGI: 4},
     "Crossbowman": {UnitTypes.HEAVY: 9},
     "Horseman": {UnitTypes.RANGED: 9, UnitTypes.SIEGE: 9},
     "Spearman": {UnitTypes.CAVALRY: 17, UnitTypes.ELEPHANT: 3, UnitTypes.WORKER_ELEPHANT: 20},
     "Springald": {UnitTypes.MI: 12, UnitTypes.SHIP: 65},
     "Mangonel": {UnitTypes.SHIP: 30, UnitTypes.RANGED: 10},
     "Bombard": {UnitTypes.SHIP: 410, UnitTypes.INFANTRY: 50, UnitTypes.ELEPHANT: 50},
-    "Counterweight Trebuchet": {UnitTypes.SHIP: 200}
+    "Counterweight Trebuchet": {UnitTypes.SHIP: 200},
+    "Camel": {UnitTypes.CAVALRY: 14, UnitTypes.SIEGE: 10}
 }
 
 

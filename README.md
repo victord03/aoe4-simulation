@@ -22,7 +22,7 @@ data/
 ```
 
 ## Status
-- [x] `Unit` class and core combat functions (`assign_damage`, `deals_bonus_damage`)
+- [x] `Unit` class with `Unit.attack(defender)` method — bonus damage lookup, armor selection, and minimum-1 damage enforced; `attack_type` validated against `{"Melee", "Ranged"}` on init
 - [x] `loader.py` — reads `units.xlsx` and constructs a `dict[str, Unit]` keyed by unit name; skips incomplete rows via `dropna(subset=["Type"])`
 - [x] `unit_types.py` — `UnitTypes` enum, `UnitDamageBonuses` class, `add_parent_unit_types()` for automatic tag expansion (3- and 4-letter codes), `BONUS_DAMAGE` dict
 - [x] Bonus damage hardcoded in Python per unit line (`BONUS_DAMAGE`), wired into loader
@@ -30,11 +30,13 @@ data/
 - [ ] **Post-fight analysis** — add `results["analysis"]` dict with: `"survivors"` (int), `"hp_percent_remaining"` (float, aggregate across all survivors), and `"wounded"` (list of `Unit` where `current_health < health`). Populated by a helper that iterates the winning army's post-battle copy (i.e. `group_a_copy`/`group_b_copy`, not the originals — originals don't carry HP damage). Enables clean/close/overwhelming classification.
 - [ ] **Double-run + outcome qualifier** — `group_fight()` must be run twice (swapping attacker order) to neutralise first-strike advantage; the larger the army, the more units it can remove in round 1 before the enemy retaliates. Compare both results and assign a qualifier tag (see *Outcome classification* below).
 - [ ] **Refactor `check_for_win` for CQS compliance** — currently violates Command-Query Separation by both mutating `results` and returning a bool. Preferred fix: either (1) return `tuple[bool, dict]` so the signature exposes both outputs explicitly, or (2) return `dict | None` (finalised results or None if fight isn't over) and drop the bool entirely — caller checks `if result := check_for_win(...)`. Option 2 is slightly cleaner. Natural moment to do this is when reworking `group_fight` for the double-run feature.
-- [ ] `test_combat.py` — unit tests for `deals_bonus_damage`, `assign_damage`, `play_combat_step`, and `group_fight`
+- [ ] `test_combat.py` — unit tests for `Unit.attack()`, `play_combat_step`, and `group_fight`
 - [ ] `test_loader.py` — integration tests that load real data from Excel and validate resulting Unit objects
 - [ ] Resource-balanced army matchups
 - [ ] CLI interface
 - [ ] Composition Quiz mode (easy, medium, hard). Easy is the basic Feudal units triangle, Medium is Castle double comps and Hard is Imperial, all unit comps possible
+- [ ] Army cost calculator (input unit names + numbers and get total costs). Potentially also get how many vills / resource are needed to constantly produce (maybe number of production buildings is dynamically calculated - say a target of 3-4 min max for the whole army, therefore get the number of production buildings, therefore get the resources required per min and finally villager count per resource)
+- [ ] Visuals using Reflex, displaying a unit image (for each army - maybe up to 3-4 different units, after that use a "several" variant) with a number below it. Then after the battle, display how many are left, a "winner" message above the winning army and "defeated" with "0" above the losing army. Finally display the odds assessment as an overall assessment
 
 ## Outcome classification
 `group_fight()` is run twice per matchup (A attacks first, then B attacks first) to neutralise first-strike bias. The four possible outcomes:
@@ -87,11 +89,41 @@ Round-based model: each round, every living unit on side A attacks one target on
 
 ## Potential improvements
 - `Unit.__init__` currently validates numeric fields but not `unit_types` — a runtime `isinstance` check against `UnitTypes` would catch type errors early. Longer term, migrating `Unit` to a `@dataclass` with `__post_init__` validation is the cleaner approach and worth considering once the class stabilises.
+- `compile_results` currently returns a `SimpleNamespace` for dot-notation access, but IDE autocompletion and static type checking don't work since fields are set dynamically at runtime. Once the `CombatResults` structure stabilises (particularly `resources`), replacing it with a `@dataclass` would restore full tooling support — likely a nested set: `CombatResults`, `ResourceCosts`, `TotalAttacks`, `PostCombatAnalysis`.
 
 ## Testing scope and conscious omissions
 - `attack_type` is validated against `{"Melee", "Ranged"}` in `Unit.__init__` — any other value silently breaks armor selection in `assign_damage`, making this a real failure mode worth guarding.
 - `name`, `attack_type`, and `unit_line` accept any value coercible to `str` and are not tested for invalid input — no realistic bad value exists since the loader sources these from typed Excel cells.
 - `food_cost`, `wood_cost`, `gold_cost`, `stone_cost` silently fall back to `0` when the cell is missing or NaN (intentional, many units have no cost in one or more resources). Testing the fallback would be testing Python's `math.isnan`, not application logic.
+
+## Map Resource Dashboard
+
+Browser-based dashboard (Streamlit + Plotly) for analysing AoE4 map resource distributions. Compares a selected map's resources against the median across all maps.
+
+**Stack:** Streamlit, Plotly, pandas — data sourced from `data/Maps.xlsx`
+
+```bash
+streamlit run map_dashboard.py
+```
+
+### File structure
+```
+map_dashboard.py      # Streamlit app (entry point, project root)
+data/
+  Maps.xlsx           # Map resource data (sheet: "Map List")
+```
+
+### What's built
+- [x] Sidebar map selector and resource category filter (All, Food, Gold, Stone)
+- [x] Grouped bar chart — selected map vs median, filtered by category, with chart title
+- [x] Rankings table — all maps ranked by total resource descending for the selected category
+  - Columns: Rank, Name, Total, Median, Flat diff from Median, % diff from Median
+  - Selected map pinned in a separate highlighted section above the full table
+  - Selected map also highlighted in purple within the full ranked table
+  - Thousands separators on all numeric columns
+
+### Next steps
+- [ ] Median/Mean toggle — switch the baseline between median and mean
 
 ## Running tests
 ```bash

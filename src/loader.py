@@ -7,41 +7,39 @@ from src.unit_types import UnitTypes, BONUS_DAMAGE, add_parent_unit_types as apu
 
 BASE_DIR = Path(__file__).parent.parent
 
-file_name = "2026-04-24_AoeIV-Excel-Data-Masterfile.xlsx"
+units_file = "2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx"
+maps_file = "Maps.xlsx"
 
-def open_excel() -> pd.DataFrame:
-    """Read the 'Units' sheet from the master Excel file and return it as a DataFrame."""
-    return pd.read_excel(BASE_DIR / "data" / file_name, sheet_name="Units")
+def open_excel(file_name: str, sheet_name: str, main_column: str) -> pd.DataFrame:
+    """Read any sheet from and return it as a DataFrame, removing empty rows of the selected 'main_column'."""
+    df = pd.read_excel(BASE_DIR / "data" / file_name, sheet_name=sheet_name)
+    return df.dropna(subset=[main_column])
 
 
-def debug_prints() -> None:
-    """Print diagnostic information about the raw DataFrame — columns, shape, dtypes, and unique Type values."""
-    df = open_excel()
+def debug_prints(data_frame: pd.DataFrame) -> None:
+    """Print diagnostic information about the raw DataFrame — columns, shape, dtypes."""
 
-    df.head()
+    data_frame.head()
 
-    print("\nColumns: ", df.columns)
+    print("\nColumns: ", data_frame.columns)
 
-    print("\nShape: ", df.shape)
+    print("\nShape: ", data_frame.shape)
 
-    print("\nColumn data types", df.dtypes)
+    print("\nColumn data types", data_frame.dtypes)
 
     print("\nInfo")
 
-    df.info()
-
-    print(df["Type"].unique())
+    data_frame.info()
 
 
-def load_units() -> dict[str, Unit]:
+def load_units(file, sheet, column) -> dict[str, Unit]:
     """Load all units from the Excel file and return them as a dict keyed by unit name.
 
     Rows with a missing 'Type' cell are skipped (e.g. units whose data has not yet
     been populated). Bonus damage entries from `BONUS_DAMAGE` are wired in by unit-line
     after each Unit is constructed.
     """
-    df = open_excel()
-    df = df.dropna(subset=["Type"])
+    df = open_excel(file, sheet, column)
     loaded_units = dict()
 
     for _, row in df.iterrows():
@@ -71,10 +69,9 @@ def load_units() -> dict[str, Unit]:
     return loaded_units
 
 
-
 if __name__ == "__main__":
 
-    dict_units = load_units()
+    """dict_units = load_units(units_file, "Units", "Name")
     print("Dict len:", len(dict_units.keys()))
     print(
         f"Spearman\n\t UdB: '{dict_units['Spearman'].unit_damage_bonuses.display_udb()}'.")
@@ -95,5 +92,6 @@ if __name__ == "__main__":
 
     print(
         f"Black rider types: {black_rider.unit_types}"
-    )
+    )"""
+
 

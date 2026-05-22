@@ -1,9 +1,102 @@
 import copy
 
+from types import SimpleNamespace
+
 from src.unit import Unit
 from random import randint
 
 from src.loader import load_units
+
+
+def compile_results(
+        army_a_name: str,
+        army_a_original: list[Unit],
+        army_a_remaining: list[Unit],
+        army_b_name: str,
+        army_b_original: list[Unit],
+        army_b_remaining: list[Unit],
+        winning_army_name: str,
+        losing_army_name: str,
+        nb_of_attacks_winning_army: int,
+        nb_of_attacks_losing_army: int,
+) -> SimpleNamespace:
+
+    results = dict()
+
+    winning_army_original = army_a_original if winning_army_name == army_a_name else army_b_original
+    winning_army_remaining = army_a_remaining if winning_army_name == army_a_name else army_b_remaining
+
+    # Resources
+    results["resources"] = dict()
+
+    # Resources army_a
+    results["resources"][army_a_name] = dict()
+    total_resources_team_a = calculate_resources(army_a_original)
+    results["resources"][army_a_name]["food"] = total_resources_team_a["food"]
+    results["resources"][army_a_name]["wood"] = total_resources_team_a["wood"]
+    results["resources"][army_a_name]["gold"] = total_resources_team_a["gold"]
+    results["resources"][army_a_name]["stone"] = total_resources_team_a["stone"]
+    results["resources"][army_a_name]["sum"] = total_resources_team_a["sum"]
+
+    # Resources army_b
+    results["resources"][army_b_name] = dict()
+    total_resources_team_b = calculate_resources(army_b_original)
+    results["resources"][army_b_name]["food"] = total_resources_team_b["food"]
+    results["resources"][army_b_name]["wood"] = total_resources_team_b["wood"]
+    results["resources"][army_b_name]["gold"] = total_resources_team_b["gold"]
+    results["resources"][army_b_name]["stone"] = total_resources_team_b["stone"]
+    results["resources"][army_b_name]["sum"] = total_resources_team_b["sum"]
+
+    # Winning army name
+    results["winning_army_name"] = winning_army_name
+
+    # Winning army full Unit list
+    results["winning_army_original"] = winning_army_original
+
+    # Losing army name
+    results["losing_army_name"] = army_b_name if winning_army_name == army_a_name else army_a_name
+
+    # Losing army full Unit list
+    results["losing_army_units"] = army_b_original if winning_army_name == army_a_name else army_a_original
+
+    # Document the total number of attacks for both armies
+    results["total_attacks"] = dict()
+    results["total_attacks"]["winning_army"] = nb_of_attacks_winning_army
+    results["total_attacks"]["losing_army"] = nb_of_attacks_losing_army
+
+    # Calculate total resource costs
+    results["resources"]["winning_army"] = results["resources"][winning_army_name]
+    results["resources"]["losing_army"] = results["resources"][losing_army_name]
+
+    """# Delete duplicate keys
+    del results["total_attacks"][army_a_name]
+    del results["total_attacks"][army_b_name]
+    del results["resources"][army_a_name]
+    del results["resources"][army_b_name]"""
+
+    # Post-combat analysis
+    results["post_combat_analysis"] = dict()
+
+    # PCA Winning army remaining Unit list
+    results["post_combat_analysis"]["winning_army_units_remaining"] = winning_army_remaining
+
+    # PCA Winning army units remaining count
+    results["post_combat_analysis"]["winning_army_number_of_units"] = len(winning_army_remaining)
+
+
+    # PCA Winning army wounded Unit list
+    wounded_units = [unit for unit in winning_army_remaining if unit.current_health < unit.health]
+    results["post_combat_analysis"]["winning_army_wounded_units"] = wounded_units
+
+
+    total_hp_remaining_percentage = calculate_surviving_army_hp_percentage_remaining(
+        surviving_army=army_a_remaining if winning_army_name == army_a_name else army_b_remaining,
+        initial_army=army_a_original if winning_army_name == army_a_name else army_b_original
+    )
+
+    results["post_combat_analysis"]["total_hp_remaining_percentage"] = total_hp_remaining_percentage
+
+    return SimpleNamespace(**results)
 
 
 def build_army(unit: Unit, count: int) -> list[Unit]:
@@ -13,27 +106,14 @@ def build_army(unit: Unit, count: int) -> list[Unit]:
     """
     return [copy.deepcopy(unit) for _ in range(count)]
 
-def deals_bonus_damage(attacker: Unit, defender: Unit) -> tuple[bool, int]:
-    """Return whether the attacker deals bonus damage to the defender, and the total bonus amount.
 
-    Matches the attacker's damage bonus tags against the defender's unit_types set.
-    Multiple matching tags stack (e.g. a unit with both CAV and RANG bonuses applies both
-    if the defender carries both tags). Each tag in the attacker's bonus dict is counted once.
-    """
-    matching = attacker.unit_damage_bonuses.damage_bonuses.keys() & defender.unit_types
-    total = sum(attacker.unit_damage_bonuses.damage_bonuses[tag] for tag in matching)
-    return bool(matching), total
+def calculate_surviving_army_hp_percentage_remaining(surviving_army: list[Unit], initial_army: list[Unit]) -> float:
 
-def assign_damage(attacker: Unit, defender: Unit) -> None:
-    """Apply one attack's worth of damage from `attacker` to `defender`.
+    initial_total_army_hp = sum(unit.health for unit in initial_army)
+    total_hp_remaining_percentage = round((sum(unit.current_health for unit in surviving_army) / initial_total_army_hp) * 100)
 
-    Selects melee or ranged armor based on the attacker's attack type, adds any
-    applicable bonus damage, and enforces a minimum of 1 damage per hit.
-    Mutates `defender.current_health` in place.
-    """
-    bonus, amount = deals_bonus_damage(attacker, defender)
-    armor = defender.melee_armor if attacker.attack_type == "Melee" else defender.ranged_armor
-    defender.current_health -= max(1, round((attacker.attack_value - armor) + (bonus * amount)))
+    return total_hp_remaining_percentage
+
 
 def calculate_resources(unit_group: list[Unit]) -> dict[str, int]:
     """Sum the resource costs of all units in `unit_group`.
@@ -66,48 +146,20 @@ def calculate_resources(unit_group: list[Unit]) -> dict[str, int]:
 
     return total_resources
 
-def check_for_ranged_extra_attack(group_a: list[Unit], group_b: list[Unit]) -> tuple[bool, bool]:
-    """Determine which groups are entitled to a free ranged attack before melee contact.
+def check_for_ranged_extra_attack(attacking_army: list[Unit], defending_army: list[Unit]) -> bool:
 
-    A group earns a free attack turn when it contains at least one Ranged unit
-    and the opposing group contains at least one Melee unit — reflecting the
-    real-game dynamic where ranged armies land shots before the enemy closes in.
-
-    Returns a (group_a_gets_free_turn, group_b_gets_free_turn) boolean tuple.
-    """
-    group_a_contains_ranged = False
-    group_a_contains_melee = False
-
-    group_b_contains_ranged = False
-    group_b_contains_melee = False
-
-    group_a_ranged_free_turns = False
-    group_b_ranged_free_turns = False
-
-    for unit in group_a:
+    for unit in attacking_army:
 
         if unit.attack_type == "Ranged":
-            group_a_contains_ranged = True
-        if unit.attack_type == "Melee":
-            group_a_contains_melee = True
 
-    for unit in group_b:
+            for unit_b in defending_army:
 
-        if unit.attack_type == "Ranged":
-            group_b_contains_ranged = True
-        if unit.attack_type == "Melee":
-            group_b_contains_melee = True
+                if unit_b.attack_type == "Melee":
+                    return True
 
-    if group_a_contains_ranged and group_b_contains_melee:
-        group_a_ranged_free_turns = True
+    return False
 
-    if group_b_contains_ranged and group_a_contains_melee:
-        group_b_ranged_free_turns = True
-
-
-    return group_a_ranged_free_turns, group_b_ranged_free_turns
-
-def play_combat_step(
+def assign_damage(
         unit: Unit,
         defending_team: list[Unit],
 ) -> tuple[list[Unit], int]:
@@ -127,7 +179,7 @@ def play_combat_step(
 
     while unit.attack_counter >= 1.0:
         defender_unit = defending_team[randint(0, len(defending_team) - 1)]
-        assign_damage(unit, defender_unit)
+        unit.attack(defender_unit)
         unit.attack_counter -= 1.0
         attack_count += 1
 
@@ -138,260 +190,169 @@ def play_combat_step(
 
 def check_for_win(
         defending_team: list[Unit],
-        attacking_team_name: str,
-        defending_team_name: str,
-        attacking_team: list[Unit],
-        results: dict) -> bool:
-    """Check whether the defending team has been eliminated and, if so, finalise results.
-
-    When `defending_team` is empty, writes the winner/loser names, unit lists,
-    attack counts, and resource costs into `results` under the canonical
-    "winning_army" / "losing_army" keys, then deletes the army-name-keyed
-    entries that were used during the fight.
-
-    Returns True if combat is over, False otherwise.
-    """
-    combat_ends = False
+   ) -> bool:
+    """Returns True if the defending team has been eliminated, False otherwise."""
 
     if len(defending_team) == 0:
+        return True
 
-        # Winning army name and full Unit list
-        results["winning_army_name"] = attacking_team_name
-        results["winning_army_units"] = attacking_team
+    return False
 
-        # Losing army name and full Unit list
-        results["losing_army_name"] = defending_team_name
-        results["losing_army_units"] = defending_team
 
-        # Document the total number of attacks
-        nb_of_attacks_attacking_team = results["total_attacks"][attacking_team_name]
-        nb_of_attacks_defending_team = results["total_attacks"][defending_team_name]
-        results["total_attacks"]["winning_army"] = nb_of_attacks_attacking_team
-        results["total_attacks"]["losing_army"] = nb_of_attacks_defending_team
+def play_combat_step(
+        attack_group_copy: list[Unit],
+        defending_group_copy: list[Unit],
+        total_attacks: dict,
+        attacking_group_name: str,
+        ranged_only: bool = False,
+) -> bool:
+    """Execute one combat step: every unit in `attack_group_copy` attacks a random defender.
 
-        # Calculate total resource costs
-        results["resources"]["winning_army"] = results["resources"][attacking_team_name]
-        results["resources"]["losing_army"] = results["resources"][defending_team_name]
+    If `ranged_only` is True, only units with attack_type "Ranged" fire — used for the
+    one-time free turn granted to ranged units before melee contact. After that single
+    free turn, all subsequent calls use the default ranged_only=False.
 
-        # Delete duplicate keys
-        del results["total_attacks"][attacking_team_name]
-        del results["total_attacks"][defending_team_name]
-        del results["resources"][attacking_team_name]
-        del results["resources"][defending_team_name]
+    Returns True if the defending team is eliminated, False otherwise.
+    """
+    combat_end = False
 
-        combat_ends = True
+    units_to_fire = [u for u in attack_group_copy if u.attack_type == "Ranged"] if ranged_only else attack_group_copy
 
-    return combat_ends
+    for unit in units_to_fire:
+
+        dead_in_defending, attacks = assign_damage(
+            unit=unit,
+            defending_team=defending_group_copy,
+        )
+
+        total_attacks[attacking_group_name] += attacks
+
+        for dead in dead_in_defending:
+            defending_group_copy.remove(dead)
+
+        combat_end = check_for_win(defending_team=defending_group_copy)
+
+        if combat_end:
+            break
+
+    return combat_end
+
 
 def group_fight(
         group_a: list[Unit],
         group_b: list[Unit],
         army_a_name: str,
         army_b_name: str
-) -> dict:
-    """
-    results_dict = {
-            "winning_army_name": str,
-            "winning_army_units": list[Unit],
-            "losing_army_name": str,
-            "losing_army_units": list[Unit],
-            "combat_turns": int,
-            "resources": {
-                        "winning_army": {
-                                "food": int, "wood": int, "gold": int, "sum":
-                        },
-                        "losing_army": {
-                                "food": int, "wood": int, "gold": int
-                        }
-            },
+) -> SimpleNamespace:
 
-    }
-    """
-
-    results = dict()
-
-    group_a_ranged_free_turns, group_b_ranged_free_turns = check_for_ranged_extra_attack(group_a, group_b)
+    group_fight_results = SimpleNamespace()
 
     group_a_copy = copy.deepcopy(group_a)
     group_b_copy = copy.deepcopy(group_b)
 
-    round_count = 0
+    total_attacks = {army_a_name: 0, army_b_name: 0}
 
-    results["resources"] = {}
+    # One-time free turn for ranged units before melee contact
+    if check_for_ranged_extra_attack(group_a_copy, group_b_copy):
+        if play_combat_step(group_a_copy, group_b_copy, total_attacks, army_a_name, ranged_only=True):
+            return compile_results(
+                army_a_original=group_a, army_a_remaining=group_a_copy, army_a_name=army_a_name,
+                army_b_original=group_b, army_b_remaining=group_b_copy, army_b_name=army_b_name,
+                winning_army_name=army_a_name, losing_army_name=army_b_name,
+                nb_of_attacks_winning_army=total_attacks[army_a_name],
+                nb_of_attacks_losing_army=total_attacks[army_b_name],
+            )
 
-    total_resources_team_a = calculate_resources(group_a)
-
-    results["resources"][army_a_name] = {}
-    results["resources"][army_a_name]["food"] = total_resources_team_a["food"]
-    results["resources"][army_a_name]["wood"] = total_resources_team_a["wood"]
-    results["resources"][army_a_name]["gold"] = total_resources_team_a["gold"]
-    results["resources"][army_a_name]["stone"] = total_resources_team_a["stone"]
-    results["resources"][army_a_name]["sum"] = total_resources_team_a["sum"]
-
-    total_resources_team_b = calculate_resources(group_b)
-
-    results["resources"][army_b_name] = {}
-    results["resources"][army_b_name]["food"] = total_resources_team_b["food"]
-    results["resources"][army_b_name]["wood"] = total_resources_team_b["wood"]
-    results["resources"][army_b_name]["gold"] = total_resources_team_b["gold"]
-    results["resources"][army_b_name]["stone"] = total_resources_team_b["stone"]
-    results["resources"][army_b_name]["sum"] = total_resources_team_b["sum"]
-
-    combat_end = False
-    results["total_attacks"] = {army_a_name: 0, army_b_name: 0}
+    if check_for_ranged_extra_attack(group_b_copy, group_a_copy):
+        if play_combat_step(group_b_copy, group_a_copy, total_attacks, army_b_name, ranged_only=True):
+            return compile_results(
+                army_a_original=group_a, army_a_remaining=group_a_copy, army_a_name=army_a_name,
+                army_b_original=group_b, army_b_remaining=group_b_copy, army_b_name=army_b_name,
+                winning_army_name=army_b_name, losing_army_name=army_a_name,
+                nb_of_attacks_winning_army=total_attacks[army_b_name],
+                nb_of_attacks_losing_army=total_attacks[army_a_name],
+            )
 
     while group_a_copy and group_b_copy:
 
-        # Grants 1 free attack to Ranged units in group_a vs Melee units in group_b
-        if group_a_ranged_free_turns:
+        combat_end = play_combat_step(
+            attack_group_copy=group_a_copy,
+            defending_group_copy=group_b_copy,
+            total_attacks=total_attacks,
+            attacking_group_name=army_a_name,
+        )
 
-            for unit in group_a_copy:
 
-                if unit.attack_type == "Ranged":
+        if combat_end:
 
-                    dead_in_b, attacks = play_combat_step(
-                        unit=unit,
-                        defending_team=group_b_copy,
-                    )
-
-                    results["total_attacks"][army_a_name] += attacks
-                    group_a_ranged_free_turns = False
-
-                    for dead in dead_in_b:
-                        group_b_copy.remove(dead)
-
-                    combat_end = check_for_win(
-                        defending_team=group_b_copy,
-                        attacking_team=group_a,
-                        attacking_team_name=army_a_name,
-                        defending_team_name=army_b_name,
-                        results=results,
-                    )
-
-                    if combat_end:
-                        break
-
-            if combat_end:
-                break
-
-        # Grants 1 free attack to Ranged units in group_b vs Melee units in group_a
-        if group_b_ranged_free_turns:
-
-            for unit in group_b_copy:
-
-                if unit.attack_type == "Ranged":
-
-                    dead_in_a, attacks = play_combat_step(
-                        unit=unit,
-                        defending_team=group_a_copy,
-                    )
-
-                    results["total_attacks"][army_b_name] += attacks
-                    group_b_ranged_free_turns = False
-
-                    for dead in dead_in_a:
-                        group_a_copy.remove(dead)
-
-                    combat_end = check_for_win(
-                        defending_team=group_a_copy,
-                        attacking_team=group_b,
-                        attacking_team_name=army_b_name,
-                        defending_team_name=army_a_name,
-                        results=results,
-                    )
-
-                    if combat_end:
-                        break
-
-            if combat_end:
-                break
-
-        # Main combat loop step A: each unit from group_a attacks a random unit from group_b
-        dead_in_b = list()
-        for unit in group_a_copy:
-
-            dead, attacks = play_combat_step(
-                unit=unit,
-                defending_team=group_b_copy,
+            group_fight_results = compile_results(
+                army_a_original=group_a,
+                army_a_remaining=group_a_copy,
+                army_a_name=army_a_name,
+                army_b_original=group_b,
+                army_b_remaining=group_b_copy,
+                army_b_name=army_b_name,
+                winning_army_name=army_a_name,
+                losing_army_name=army_b_name,
+                nb_of_attacks_winning_army=total_attacks[army_a_name],
+                nb_of_attacks_losing_army=total_attacks[army_b_name]
             )
-            dead_in_b += dead
-            results["total_attacks"][army_a_name] += attacks
+            break
 
-        for dead in list(dict.fromkeys(dead_in_b)):
-            group_b_copy.remove(dead)
-
-        combat_end = check_for_win(
-            defending_team=group_b_copy,
-            attacking_team=group_a,
-            attacking_team_name=army_a_name,
-            defending_team_name=army_b_name,
-            results=results,
+        combat_end = play_combat_step(
+            attack_group_copy=group_b_copy,
+            defending_group_copy=group_a_copy,
+            total_attacks=total_attacks,
+            attacking_group_name=army_b_name,
         )
 
         if combat_end:
-            break
 
-        # Main combat loop step B: each unit from group_b attacks a random unit from group_a
-        dead_in_a = list()
-        for unit in group_b_copy:
-
-            dead, attacks = play_combat_step(
-                unit=unit,
-                defending_team=group_a_copy,
+            group_fight_results = compile_results(
+                army_a_original=group_a,
+                army_a_remaining=group_a_copy,
+                army_a_name=army_a_name,
+                army_b_original=group_b,
+                army_b_remaining=group_b_copy,
+                army_b_name=army_b_name,
+                winning_army_name=army_b_name,
+                losing_army_name=army_a_name,
+                nb_of_attacks_winning_army=total_attacks[army_b_name],
+                nb_of_attacks_losing_army=total_attacks[army_a_name]
             )
-            dead_in_a += dead
-            results["total_attacks"][army_b_name] += attacks
-
-        for dead in list(dict.fromkeys(dead_in_a)):
-            group_a_copy.remove(dead)
-
-        combat_end = check_for_win(
-            defending_team=group_a_copy,
-            attacking_team=group_b,
-            attacking_team_name=army_b_name,
-            defending_team_name=army_a_name,
-            results=results,
-        )
-
-        if combat_end:
             break
 
-    return results
+
+    return group_fight_results
+
+# TODO new func, implement
+def show_damage(attacker, defender) -> int:
+    """Returns a flat number which is the amount of damage the attacker would inflict on the defender"""
+    ...
 
 
 if __name__ == "__main__":
 
     all_units = load_units()
 
-    army_a = build_army(all_units["Handcannoneer"], 1)
-    army_name_a = "Handcannoneers"
-    army_b = build_army(all_units["Horseman"], 2)
-    army_name_b = "Horsemen"
+    army_1 = build_army(all_units["Spearman"], 8)
+    army_name_1 = "Spearmen"
+    army_2 = build_army(all_units["Archer"], 7)
+    army_name_2 = "Archers"
 
     # TODO run simulations twice, swapping the armies, as 'army_a' always attacks first programmatically
     # TODO need to document remaining hp (flat, %) on the winning army. This indicates how 'close' the battle was.
 
-    results_dict = group_fight(
-        group_a=army_a,
-        group_b=army_b,
-        army_a_name=army_name_a,
-        army_b_name=army_name_b
+
+    battle_results = group_fight(
+        group_a=army_1,
+        group_b=army_2,
+        army_a_name=army_name_1,
+        army_b_name=army_name_2
     )
 
-    winning_army_name = results_dict["winning_army_name"]
-    winning_army = results_dict["winning_army_units"]
-    losing_army_name = results_dict["losing_army_name"]
-    losing_army = results_dict["losing_army_units"]
-    winning_army_attacks = results_dict["total_attacks"]["winning_army"]
-    losing_army_attacks = results_dict["total_attacks"]["losing_army"]
-    resources = results_dict["resources"]
+    print("Result dict keys:", list(battle_results.keys()))
 
     print(
-        f"The winner is {winning_army_name} ({len(winning_army)} units total) !",
-        "\n",
-        f"'{winning_army_name}' landed {winning_army_attacks} attacks. '{losing_army_name}' landed {losing_army_attacks} attacks.",
-        "\n",
-        f"Total resources for '{winning_army_name}': {resources['winning_army']['sum']}",
-        "\n",
-        f"Total resources for '{losing_army_name}': {resources['losing_army']['sum']}",
+        f"Winning army: {battle_results.winning_army}"
     )
