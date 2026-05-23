@@ -106,6 +106,53 @@ def render_rankings_table(maps_frame, selected_map, selected_category):
     )
 
 
+def render_map_info(maps_frame, selected_map):
+
+    """Style
+    Topographically Defensible Spawn
+
+    Sacred Sites (+ median)
+    Trade Posts (+ median)
+    Relics (+ median)
+
+    Water
+    Shoreline Fish
+    Deep Water Fish
+
+    """
+
+    current_map_row = maps_frame[maps_frame["Name"] == selected_map].iloc[0]
+    map_type = current_map_row["Style"]
+    median = maps_frame.median(numeric_only=True)
+
+    sacred_sites = current_map_row["Sacred Sites"]
+    ss_median = median["Sacred Sites"]
+
+    relics = current_map_row["Relics"]
+    r_median = median["Relics"]
+
+    trade_posts = current_map_row["Trade Posts"]
+    tp_median = median["Trade Posts"]
+
+    tds = "Yes" if current_map_row["Topographically Defensible Spawn"] else "No"
+    water_line = "<p style='margin: 4px 0;'>Water: Yes</p>" if current_map_row["Water"] else ""
+    shoreline_line = "<p style='margin: 4px 0;'>Shoreline Fish: Yes</p>" if current_map_row["Shoreline Fish"] else ""
+    deep_water_line = "<p style='margin: 4px 0;'>Deep Water Fish: Yes</p>" if current_map_row["Deep Water Fish"] else ""
+
+    st.sidebar.markdown("<br>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"""
+        <div style="padding: 12px 16px; background-color: #14141A; border: 1px solid #3A3A4A; border-radius: 8px;">
+            <p style="margin: 4px 0;">Map Archetype: {map_type}</p>
+            <p style="margin: 4px 0;">Sacred Sites: {sacred_sites} (μ = {ss_median})</p>
+            <p style="margin: 4px 0;">Relics: {relics} (μ = {r_median})</p>
+            <p style="margin: 4px 0;">Trade Posts: {trade_posts} (μ = {tp_median})</p>
+            <p style="margin: 4px 0;">Topographically Defensible Spawn: {tds}</p>
+            {water_line}
+            {shoreline_line}
+            {deep_water_line}
+        </div>
+    """, unsafe_allow_html=True)
+
 
 
 def main():
@@ -116,6 +163,7 @@ def main():
     selected_map, selected_category = render_sidebar(maps_frame)
     render_comparison_chart(maps_frame, selected_map, selected_category)
     render_rankings_table(maps_frame, selected_map, selected_category)
+    render_map_info(maps_frame, selected_map)
 
     # streamlit run map_dashboard.py
 

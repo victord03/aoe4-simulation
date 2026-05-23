@@ -115,6 +115,7 @@ data/
 
 ### What's built
 - [x] Sidebar map selector and resource category filter (All, Food, Gold, Stone)
+- [x] Sidebar map info panel — styled dark box showing map archetype, Sacred Sites / Relics / Trade Posts (with median), Topographically Defensible Spawn, and conditional Water / Shoreline Fish / Deep Water Fish (only shown when present)
 - [x] Grouped bar chart — selected map vs median, filtered by category, with chart title
 - [x] Rankings table — all maps ranked by total resource descending for the selected category
   - Columns: Rank, Name, Total, Median, Flat diff from Median, % diff from Median
