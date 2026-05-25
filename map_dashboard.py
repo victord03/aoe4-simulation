@@ -28,18 +28,23 @@ CATEGORY_COLUMNS = {
 }
 
 def load_data() -> pd.DataFrame:
+    """Load the Map List sheet and return it as a DataFrame keyed by map name."""
     return open_excel(MAPS_FILE, MAPS_SHEET, "Name")
 
 
-def render_sidebar(maps_frame) -> tuple[str, str]:
+def render_sidebar(maps_frame: pd.DataFrame) -> tuple[str, str]:
+    """Render the map selector and resource category filter in the sidebar.
+
+    Returns the selected map name and category label.
+    """
     maps = st.sidebar.selectbox("Select a map", maps_frame["Name"].tolist())
     category = st.sidebar.selectbox("Select a resource", list(CATEGORY_COLUMNS.keys()))
 
     return str(maps), str(category)
 
 
-def render_comparison_chart(maps_frame, selected_map, selected_category):
-
+def render_comparison_chart(maps_frame: pd.DataFrame, selected_map: str, selected_category: str) -> None:
+    """Render a grouped bar chart comparing the selected map's resources against the median."""
     columns_to_show = CATEGORY_COLUMNS[selected_category]
 
     row = maps_frame[maps_frame["Name"] == selected_map].iloc[0]
@@ -54,8 +59,12 @@ def render_comparison_chart(maps_frame, selected_map, selected_category):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def render_rankings_table(maps_frame, selected_map, selected_category):
+def render_rankings_table(maps_frame: pd.DataFrame, selected_map: str, selected_category: str) -> None:
+    """Render a two-section rankings table sorted by total resource for the selected category.
 
+    The selected map is pinned in a highlighted section above the full ranked table.
+    Only available when a specific resource category is selected (not 'All').
+    """
     if selected_category == "All":
         st.info("Select a specific resource to see rankings.")
         return
@@ -80,7 +89,7 @@ def render_rankings_table(maps_frame, selected_map, selected_category):
     full_format = {total_col: "{:,}", "Median": "{:,}", "Flat diff from Median": "{:,}"}
     rank_col_config = {"Rank": st.column_config.NumberColumn(width="small")}
 
-    def highlight_row(row):
+    def highlight_row(row: pd.Series) -> list[str]:
         if row["Name"] == selected_map:
             return ["background-color: #6C3483; color: white"] * len(row)
         return [""] * len(row)
@@ -106,19 +115,11 @@ def render_rankings_table(maps_frame, selected_map, selected_category):
     )
 
 
-def render_map_info(maps_frame, selected_map):
+def render_map_info(maps_frame: pd.DataFrame, selected_map: str) -> None:
+    """Render a styled sidebar panel with key map attributes.
 
-    """Style
-    Topographically Defensible Spawn
-
-    Sacred Sites (+ median)
-    Trade Posts (+ median)
-    Relics (+ median)
-
-    Water
-    Shoreline Fish
-    Deep Water Fish
-
+    Shows map archetype, Sacred Sites / Relics / Trade Posts with their medians,
+    Topographically Defensible Spawn status, and water-related flags (only when present).
     """
 
     current_map_row = maps_frame[maps_frame["Name"] == selected_map].iloc[0]
@@ -154,8 +155,8 @@ def render_map_info(maps_frame, selected_map):
     """, unsafe_allow_html=True)
 
 
-def render_map_description(maps_frame, selected_map):
-
+def render_map_description(maps_frame: pd.DataFrame, selected_map: str) -> None:
+    """Render a styled sidebar panel with the free-text description of the selected map."""
     current_map_row = maps_frame[maps_frame["Name"] == selected_map].iloc[0]
     current_map_description = current_map_row["Comments"]
 
@@ -167,8 +168,8 @@ def render_map_description(maps_frame, selected_map):
         """, unsafe_allow_html=True)
 
 
-def main():
-
+def main() -> None:
+    """Entry point — configures the page and orchestrates all render calls."""
     st.set_page_config(layout="wide")
 
     maps_frame = load_data()

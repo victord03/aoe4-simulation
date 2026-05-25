@@ -116,6 +116,7 @@ data/
 ### What's built
 - [x] Sidebar map selector and resource category filter (All, Food, Gold, Stone)
 - [x] Sidebar map info panel — styled dark box showing map archetype, Sacred Sites / Relics / Trade Posts (with median), Topographically Defensible Spawn, and conditional Water / Shoreline Fish / Deep Water Fish (only shown when present)
+- [x] Sidebar map description panel — styled dark box with a free-text description of the map's feel and layout
 - [x] Grouped bar chart — selected map vs median, filtered by category, with chart title
 - [x] Rankings table — all maps ranked by total resource descending for the selected category
   - Columns: Rank, Name, Total, Median, Flat diff from Median, % diff from Median
@@ -123,8 +124,43 @@ data/
   - Selected map also highlighted in purple within the full ranked table
   - Thousands separators on all numeric columns
 
-### Next steps
-- [ ] Median/Mean toggle — switch the baseline between median and mean
+## Unit Upgrade Dashboard
+
+Browser-based dashboard (Streamlit + Plotly) for visualising unit stat progression across upgrade tiers (base → Veteran → Elite). Data sourced from the "Unit Upgrades" sheet of the masterfile.
+
+**Stack:** Streamlit, Plotly, pandas — data sourced from `data/2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx`
+
+```bash
+streamlit run unit_upgrades_dashboard.py
+```
+
+### File structure
+```
+unit_upgrades_dashboard.py      # Streamlit app (entry point, project root)
+data/
+  2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx  # Unit data (sheet: "Unit Upgrades")
+```
+
+### What's built
+- [x] Sidebar unit selector
+- [x] Percentage chart — grouped bars showing HP % and Damage % increase per upgrade tier (Veteran / Elite), with value labels and hover tooltips
+- [x] Armor chart — grouped bars showing flat Melee and Ranged Armor increase per upgrade tier; replaced by a "No armor increase" placeholder when all values are zero
+- [x] Both charts displayed side by side; units with only Veteran or only Elite upgrades render only the relevant bars
+- [x] Median reference bars (Veteran and Elite) shown on both charts for cross-unit comparison
+- [x] "No tier upgrades" info message for units with no Veteran or Elite variant
+
+- [x] Radar chart — overlapping polygons for Veteran and Elite upgrade profiles across four axes (HP %, Damage %, Melee Armor, Ranged Armor); each axis normalised 0–100 relative to the maximum value for that stat across all units
+
+### Planned features
+- [ ] Line chart — stat gain per resource spent per upgrade tier, showing whether each upgrade is more or less efficient than the previous one
+- [ ] Base → Elite overall comparison — additional chart or chart group showing the cumulative stat delta from base to Elite (bypassing the per-tier breakdown), giving a single "total upgrade value" view
+- [ ] Flat HP and Damage chart — companion to the existing % chart, showing the absolute HP and damage increases in raw numbers rather than percentages
+
+### Testing scope (`test/test_unit_upgrades_dashboard.py`)
+Integration tests hitting the real Excel file — no Streamlit or Plotly calls.
+- [ ] **Column existence** — assert that all constants (`VETERAN_PCT_COLS`, `ELITE_PCT_COLS`, `VETERAN_FLAT_COLS`, `ELITE_FLAT_COLS`) are present as actual column names in the loaded DataFrame; catches wrong column name typos silently serving incorrect data
+- [ ] **Value extraction** — for a known unit (e.g. Spearman), assert that the extracted veteran HP % value matches the expected value from the spreadsheet; catches wrong column lookups returning plausible-looking but incorrect data
+- [ ] **Tier detection** — assert that a Feudal unit (e.g. Spearman) has `veteran=True` and `elite=True`, and that a Castle-age unit with no Veteran row (e.g. Arbaletrier) has `veteran=False` and `elite=True`
 
 ## Running tests
 ```bash
