@@ -154,6 +154,18 @@ def render_map_info(maps_frame, selected_map):
     """, unsafe_allow_html=True)
 
 
+def render_map_description(maps_frame, selected_map):
+
+    current_map_row = maps_frame[maps_frame["Name"] == selected_map].iloc[0]
+    current_map_description = current_map_row["Comments"]
+
+    st.sidebar.markdown("<br>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"""
+            <div style="padding: 12px 16px; background-color: #14141A; border: 1px solid #3A3A4A; border-radius: 8px;">
+                <p style="margin: 4px 0;">Description: {current_map_description}</p>
+            </div>
+        """, unsafe_allow_html=True)
+
 
 def main():
 
@@ -164,6 +176,7 @@ def main():
     render_comparison_chart(maps_frame, selected_map, selected_category)
     render_rankings_table(maps_frame, selected_map, selected_category)
     render_map_info(maps_frame, selected_map)
+    render_map_description(maps_frame, selected_map)
 
     # streamlit run map_dashboard.py
 
