@@ -7,8 +7,8 @@ __pycache__/
 *.so
 
 # Data file
-data/2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx
 data/Maps.xlsx
+data/Units.xlsx
 
 # Distribution / packaging
 .Python

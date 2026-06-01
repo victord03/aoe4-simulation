@@ -7,7 +7,7 @@ from src.unit_types import UnitTypes, BONUS_DAMAGE, add_parent_unit_types as apu
 
 BASE_DIR = Path(__file__).parent.parent
 
-units_file = "2026-05-22_AoeIV-Excel-Data-Masterfile.xlsx"
+units_file = "Units.xlsx"
 maps_file = "Maps.xlsx"
 
 def open_excel(file_name: str, sheet_name: str, main_column: str) -> pd.DataFrame:
@@ -71,27 +71,33 @@ def load_units(file, sheet, column) -> dict[str, Unit]:
 
 if __name__ == "__main__":
 
-    """dict_units = load_units(units_file, "Units", "Name")
+    dict_units = load_units(units_file, "Units", "Name")
     print("Dict len:", len(dict_units.keys()))
     print(
-        f"Spearman\n\t UdB: '{dict_units['Spearman'].unit_damage_bonuses.display_udb()}'.")
+        f"\nSpearman\n\t UdB: '{dict_units['Spearman'].unit_damage_bonuses.display_udb()}'.")
 
-    knight = dict_units["Knight"]
+    torguud = dict_units["Torguud"]
 
     print(
-        f"Knight ({knight.food_cost}F / {knight.gold_cost}G), {knight.production_time} seconds."
+        f"\n{torguud.name}\n\t{torguud.health} HP"
+    )
+
+    torguud_vet = dict_units["Torguud (Veteran)"]
+
+    print(
+        f"\n{torguud_vet.name}\n\t{torguud_vet.health} HP"
     )
 
     handcannon = dict_units["Gilded Handcannoneer"]
 
     print(
-        f"Gilded Handcannoneer Types:{handcannon.unit_types} \n {handcannon.unit_damage_bonuses.display_udb()}"
+        f"\nGilded Handcannoneer Types:{handcannon.unit_types} \n {handcannon.unit_damage_bonuses.display_udb()}"
     )
 
     black_rider = dict_units["Black Rider"]
 
     print(
-        f"Black rider types: {black_rider.unit_types}"
-    )"""
+        f"\nBlack rider types: {black_rider.unit_types}"
+    )
 
 
